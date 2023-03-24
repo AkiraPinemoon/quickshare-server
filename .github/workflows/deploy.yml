@@ -11,9 +11,7 @@ jobs:
     
     - name: Create archive
       run: |
-        mkdir server
-        mv -v / server/
-        tar -czf server.tar.gz server
+        tar -czf ../server.tar.gz server
 
     - name: SSH Server Deploy
       uses: kostyaten/ssh-server-deploy@v4
@@ -24,6 +22,6 @@ jobs:
         password: ${{ secrets.SSH_PASSWORD }}
         after_script: |
           tar -xf server.tar.gz
-        scp_source: server.tar.gz
+        scp_source: ../server.tar.gz
         scp_target: server.tar.gz
         
