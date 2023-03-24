@@ -1,0 +1,26 @@
+name: Deploy
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Create archive
+      run: tar -czf server.tar.gz .
+
+    - name: SSH Server Deploy
+      uses: kostyaten/ssh-server-deploy@v4
+      with:
+        host: ssh.alpha-ome.ga
+        port: 500
+        username: admin
+        password: ${{ secrets.SSH_PASSWORD }}
+        after_script: |
+          tar -xf server.tar.gz
+        scp_source: server.tar.gz
+        scp_target: server.tar.gz
+        
