@@ -1,13 +1,11 @@
 
 const express = require('express');
-const path = require('path');
 const app = express();
 const port = 80;
 
+// for dev only
 const cors = require('cors');
-app.use(cors({
-    origin: "localhost"
-}));
+app.use(cors());
 
 app.use(express.static("../dist"));
 
