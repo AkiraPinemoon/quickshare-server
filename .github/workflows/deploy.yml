@@ -10,7 +10,7 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Create archive
-      run: tar -czf server.tar.gz .
+      run: tar -czf server.tar.gz quickshare-server
 
     - name: SSH Server Deploy
       uses: kostyaten/ssh-server-deploy@v4
