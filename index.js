@@ -7,7 +7,10 @@ const port = 80;
 app.use(express.static("../dist"));
 
 app.get("/api/isValid/:fileId", (req, res) => {
-    dbCheck.get((row)=>{console.log(row)})
+    // TODO: check with db if id is valid
+    if(req.params.fileId == "123456") res.write("true");
+    else res.write("false");
+    res.end();
 });
 
 app.get("/*", (req, res) => {
