@@ -24,6 +24,6 @@ jobs:
         password: ${{ secrets.SSH_PASSWORD }}
         after_script: |
           tar -xf server.tar.gz
-        scp_source: ../server.tar.gz
+        scp_source: server.tar.gz
         scp_target: server.tar.gz
         
