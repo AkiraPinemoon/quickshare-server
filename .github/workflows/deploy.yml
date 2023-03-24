@@ -13,7 +13,7 @@ jobs:
     
     - name: Create archive
       run: |
-        tar -czf ../server.tar.gz server
+        tar -czf server.tar.gz server
 
     - name: SSH Server Deploy
       uses: kostyaten/ssh-server-deploy@v4
