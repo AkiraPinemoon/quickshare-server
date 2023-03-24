@@ -6,7 +6,7 @@ const port = 80;
 
 const cors = require('cors');
 app.use(cors({
-    origin: "*"
+    origin: "localhost"
 }));
 
 app.use(express.static("../dist"));
