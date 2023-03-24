@@ -4,6 +4,11 @@ const path = require('path');
 const app = express();
 const port = 80;
 
+const cors = require('cors');
+app.use(cors({
+    origin: "*"
+}));
+
 app.use(express.static("../dist"));
 
 app.get("/api/isValid/:fileId", (req, res) => {
