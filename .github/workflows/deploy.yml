@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        path: /server
+        path: server
     
     - name: Create archive
       run: |
