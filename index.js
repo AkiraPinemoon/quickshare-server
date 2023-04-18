@@ -7,14 +7,21 @@ const port = 80;
 const cors = require('cors');
 app.use(cors());
 
+let filenames = {"123456" : "robot-icon.svg"};
+
 app.use(express.static("../dist"));
 
 app.get("/api/isValid/:fileId", (req, res) => {
+    console.log("idcheck: " + req.params.fileId);
     // TODO: check with db if id is valid
-    if(req.params.fileId == "123456") res.write("true");
-    else res.write("false");
-    res.end();
+    if(filenames[req.params.fileId]) res.send({file: true});
+    else res.send({file: false});
 });
+
+app.get("/api/access/:fileId", (req, res) => {
+    console.log("file requested: " + req.params.fileId);
+    res.sendFile("files/" + filenames[req.params.fileId], { root: ".." });
+})
 
 app.get("/*", (req, res) => {
     res.sendFile("dist/index.html", { root: ".." });
