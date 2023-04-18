@@ -13,7 +13,6 @@ app.use(express.static("../dist"));
 
 app.get("/api/isValid/:fileId", (req, res) => {
     console.log("idcheck: " + req.params.fileId);
-    // TODO: check with db if id is valid
     if(filenames[req.params.fileId]) res.send({file: true});
     else res.send({file: false});
 });
