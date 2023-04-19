@@ -3,23 +3,53 @@ const express = require('express');
 const app = express();
 const port = 80;
 
+const sqlite3 = require('sqlite3').verbose();
+
+db = new sqlite3.Database("../database.db");
+db.serialize(() => {
+    db.run(`
+        CREATE TABLE IF NOT EXISTS files (
+        id INTEGER PRIMARY KEY,
+        filename TEXT UNIQUE
+    )`);
+});
+
 // for dev only
 const cors = require('cors');
 app.use(cors());
-
-let filenames = {"123456" : "robot-icon.svg"};
 
 app.use(express.static("../dist"));
 
 app.get("/api/isValid/:fileId", (req, res) => {
     console.log("idcheck: " + req.params.fileId);
-    if(filenames[req.params.fileId]) res.send({file: true});
-    else res.send({file: false});
+
+    db.get(`SELECT id FROM files WHERE id = ?`, [req.params.fileId], (err, row) => {
+        if (err) {
+            console.error(err.message);
+        } else if (row) {
+            res.send({file: true});
+        } else {
+            res.send({file: false});
+        }
+    });
 });
 
 app.get("/api/access/:fileId", (req, res) => {
     console.log("file requested: " + req.params.fileId);
-    res.sendFile("files/" + filenames[req.params.fileId], { root: ".." });
+
+    res.sendFile("files/" + req.params.fileId, { root: ".." });
+})
+
+app.get("/api/filename/:fileId", (req, res) => {
+    console.log("filename: " + req.params.fileId);
+
+    db.get(`SELECT filename FROM files WHERE id = ?`, [req.params.fileId], (err, row) => {
+        if (err) {
+            console.error(err.message);
+        } else if (row) {
+            res.send(row);
+        }
+    });
 })
 
 app.get("/*", (req, res) => {
