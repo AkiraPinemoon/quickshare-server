@@ -52,6 +52,43 @@ app.get("/api/filename/:fileId", (req, res) => {
     });
 })
 
+const formidable = require("formidable");
+const fs = require("fs");
+
+app.post("/api/upload", async (req, res) => {
+    const form = formidable({
+        multiples: false,
+        uploadDir: "../temp",
+    });
+
+    form.parse(req, (err, fields, files) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send(err);
+        }
+
+        const file = files.file;
+        console.log("uploading: " + file.originalFilename);
+        
+        let id = Math.floor(Math.random() * (999999 - 111111 + 1)) + 111111
+
+        fs.rename(file.filepath, "../files/" + id, (err) => {
+            if (err) {
+              console.error(err);
+              return res.status(500).send(err);
+            }
+        });
+
+        db.serialize(() => {
+            db.run(`
+            INSERT INTO files (id, filename) VALUES (?, ?)`, [id, file.originalFilename]);
+        });
+
+        console.log("assigned id: " + id);
+        res.send({id});
+    });
+})
+
 app.get("/*", (req, res) => {
     res.sendFile("dist/index.html", { root: ".." });
 });
