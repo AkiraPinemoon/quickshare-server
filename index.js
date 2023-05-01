@@ -7,6 +7,19 @@ const sqlite3 = require('sqlite3').verbose();
 
 const fs = require('fs');
 
+const runtimeFolder = './runtime';
+const filesFolder = './runtime/files';
+
+// Check if the runtime folder exists, create it if it doesn't
+if (!fs.existsSync(runtimeFolder)) {
+  fs.mkdirSync(runtimeFolder);
+}
+
+// Check if the files folder exists, create it if it doesn't
+if (!fs.existsSync(filesFolder)) {
+  fs.mkdirSync(filesFolder);
+}
+
 db = new sqlite3.Database("runtime/database.db");
 db.serialize(() => {
     db.run(`
