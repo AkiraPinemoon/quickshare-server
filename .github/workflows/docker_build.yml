@@ -25,7 +25,7 @@ jobs:
                 type=ref,event=tag
                 type=sha
                 type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
-        - uses: docker/build-push-action@v3
+        - uses: docker/build-push-action@v4
           with:
             context: .
             tags: ${{ steps.meta.outputs.tags }}
