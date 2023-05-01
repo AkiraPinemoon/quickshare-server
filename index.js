@@ -43,10 +43,6 @@ function makeToken() {
     return result;
 }
 
-// for dev only
-// const cors = require('cors');
-// app.use(cors());
-
 app.use(express.static("dist"));
 app.use(express.json())
 
@@ -154,7 +150,7 @@ app.post("/api/upload", async (req, res) => {
 })
 
 app.get("/*", (req, res) => {
-    res.sendFile("dist/index.html", { root: ".." });
+    res.sendFile("dist/index.html", { root: "." });
 });
 
 app.listen(port, ()=>{
@@ -178,7 +174,7 @@ function cleanup() {
         rows.forEach(function(row) {
             console.log("no ttl left - removing " + row.id)
     
-            fs.rm("../files/" + row.id, () => {});
+            fs.rm("runtime/files/" + row.id, () => {});
     
             // Delete id from table
             db.run(`DELETE FROM files WHERE id = ?`, row.id, function(err) {
