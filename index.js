@@ -5,7 +5,9 @@ const port = 80;
 
 const sqlite3 = require('sqlite3').verbose();
 
-db = new sqlite3.Database("../database.db");
+const fs = require('fs');
+
+db = new sqlite3.Database("runtime/database.db");
 db.serialize(() => {
     db.run(`
         CREATE TABLE IF NOT EXISTS files (
@@ -32,7 +34,7 @@ function makeToken() {
 // const cors = require('cors');
 // app.use(cors());
 
-app.use(express.static("../dist"));
+app.use(express.static("dist"));
 app.use(express.json())
 
 app.get("/api/isValid/:fileId", (req, res) => {
@@ -52,7 +54,7 @@ app.get("/api/isValid/:fileId", (req, res) => {
 app.get("/api/access/:fileId", (req, res) => {
     console.log("file requested: " + req.params.fileId);
 
-    res.sendFile("files/" + req.params.fileId, { root: ".." });
+    res.sendFile("files/" + req.params.fileId, { root: "runtime" });
 })
 
 app.get("/api/filename/:fileId", (req, res) => {
@@ -79,7 +81,7 @@ app.post("/api/delete/:fileId", (req, res) => {
                 db.run(`DELETE FROM files WHERE id = ?`, [req.params.fileId]);
             })
 
-            fs.rm("../files/" + req.params.fileId, () => {});
+            fs.rm("runtime/files/" + req.params.fileId, () => {});
             res.sendStatus(200);
         }
     });
@@ -102,12 +104,11 @@ app.post("/api/keepup/:fileId", (req, res) => {
 })
 
 const formidable = require("formidable");
-const fs = require("fs");
 
 app.post("/api/upload", async (req, res) => {
     const form = formidable({
         multiples: false,
-        uploadDir: "../temp",
+        uploadDir: "runtime/files/",
     });
 
     form.parse(req, (err, fields, files) => {
@@ -123,7 +124,7 @@ app.post("/api/upload", async (req, res) => {
         let token = makeToken();
         // TODO: check if id is new
 
-        fs.rename(file.filepath, "../files/" + id, (err) => {
+        fs.rename(file.filepath, "runtime/files/" + id, (err) => {
             if (err) {
               console.error(err);
               return res.status(500).send(err);
