@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 const port = 80;
 
-77app.use(require("cors")())
+//app.use(require("cors")())
 
 const sqlite3 = require('sqlite3').verbose();
 
