@@ -7,6 +7,7 @@ const port = 80;
 const sqlite3 = require("sqlite3").verbose();
 
 const fs = require("fs");
+const util = require("util");
 
 const runtimeFolder = "./runtime";
 const filesFolder = "./runtime/files";
@@ -140,6 +141,7 @@ app.post("/api/upload", async (req, res) => {
     multiples: false,
     uploadDir: "runtime/files/",
     maxFileSize: 100 * 1024 * 1024, // 100MB per chunk
+    keepExtensions: true,
   });
 
   form.parse(req, (err, fields, files) => {
@@ -148,7 +150,12 @@ app.post("/api/upload", async (req, res) => {
       return res.status(500).send(err);
     }
 
-    const file = files.file;
+    // Handle file - in formidable v2 it might be an array even with multiples: false
+    let file = files.file;
+    if (Array.isArray(file)) {
+      file = file[0];
+    }
+
     const getField = (field, defaultValue) => {
       if (Array.isArray(field)) return field[0];
       if (field != null) return field;
@@ -159,6 +166,11 @@ app.post("/api/upload", async (req, res) => {
     const totalChunks = parseInt(getField(fields.totalChunks, 1), 10) || 1;
     const uploadId = getField(fields.uploadId, "");
     const filename = getField(fields.filename, "upload");
+
+    console.log("files:");
+    console.dir(files, { depth: null });
+    console.log("fields:");
+    console.dir(fields, { depth: null });
 
     if (!file || !uploadId) {
       return res.status(400).send({ error: "Missing file or uploadId" });
