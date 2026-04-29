@@ -139,9 +139,10 @@ app.post("/api/keepup/:fileId", (req, res) => {
 });
 
 const formidable = require("formidable");
+const { IncomingForm } = require("formidable");
 
 app.post("/api/upload", async (req, res) => {
-  const form = formidable({
+  const form = new IncomingForm({
     multiples: false,
     uploadDir: "runtime/files/",
     maxFileSize: 100 * 1024 * 1024, // 100MB per chunk
@@ -160,6 +161,10 @@ app.post("/api/upload", async (req, res) => {
       file = file[0];
     }
 
+    // In formidable v2, file object has new structure
+    const filePath = file?.filepath || file?.newFilePath || file?.path;
+    const fileSize = file?.size || 0;
+
     const getField = (field, defaultValue) => {
       if (Array.isArray(field)) return field[0];
       if (field != null) return field;
@@ -171,10 +176,12 @@ app.post("/api/upload", async (req, res) => {
     const uploadId = getField(fields.uploadId, "");
     const filename = getField(fields.filename, "upload");
 
-    if (!file || !uploadId) {
-      return res
-        .status(400)
-        .send({ error: "Missing file or uploadId", data: fields });
+    if (!filePath || !uploadId) {
+      return res.status(400).send({
+        error: "Missing file or uploadId",
+        data: fields,
+        files: files,
+      });
     }
 
     console.log(
@@ -190,7 +197,7 @@ app.post("/api/upload", async (req, res) => {
 
     const chunkPath = `${uploadDir}/${chunkIndex}`;
 
-    fs.rename(file.filepath, chunkPath, (err) => {
+    fs.rename(filePath, chunkPath, (err) => {
       if (err) {
         console.error(err);
         return res.status(500).send(err);
