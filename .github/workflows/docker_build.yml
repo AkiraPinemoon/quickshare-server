@@ -30,8 +30,7 @@ jobs:
             context: .
             tags: ${{ steps.meta.outputs.tags }}
             labels: ${{ steps.meta.outputs.labels }}
-            cache-from: type=gha
-            cache-to: type=gha,mode=max
+            no-cache: true
             platforms: linux/amd64, linux/arm64/v8
             push: true
             
