@@ -149,10 +149,20 @@ app.post("/api/upload", async (req, res) => {
     }
 
     const file = files.file;
-    const chunkIndex = parseInt(fields.chunkIndex[0]) || 0;
-    const totalChunks = parseInt(fields.totalChunks[0]) || 1;
-    const uploadId = fields.uploadId[0];
-    const filename = fields.filename[0];
+    const getField = (field, defaultValue) => {
+      if (Array.isArray(field)) return field[0];
+      if (field != null) return field;
+      return defaultValue;
+    };
+
+    const chunkIndex = parseInt(getField(fields.chunkIndex, 0), 10) || 0;
+    const totalChunks = parseInt(getField(fields.totalChunks, 1), 10) || 1;
+    const uploadId = getField(fields.uploadId, "");
+    const filename = getField(fields.filename, "upload");
+
+    if (!file || !uploadId) {
+      return res.status(400).send({ error: "Missing file or uploadId" });
+    }
 
     console.log(
       `uploading chunk ${chunkIndex + 1}/${totalChunks} for upload ${uploadId}`,
