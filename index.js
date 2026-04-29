@@ -47,7 +47,11 @@ function makeToken() {
 }
 
 app.use(express.static("dist"));
-app.use(express.json({ limit: "10mb" }));
+
+// Only parse JSON for specific API endpoints that need it (not file uploads)
+app.use("/api/isValid/", express.json({ limit: "10mb" }));
+app.use("/api/delete/", express.json({ limit: "10mb" }));
+app.use("/api/keepup/", express.json({ limit: "10mb" }));
 
 app.get("/api/isValid/:fileId", (req, res) => {
   console.log("idcheck: " + req.params.fileId);
