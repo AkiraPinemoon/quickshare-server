@@ -46,7 +46,7 @@ function makeToken() {
 }
 
 app.use(express.static("dist"));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 app.get("/api/isValid/:fileId", (req, res) => {
   console.log("idcheck: " + req.params.fileId);
@@ -139,7 +139,7 @@ app.post("/api/upload", async (req, res) => {
   const form = formidable({
     multiples: false,
     uploadDir: "runtime/files/",
-    maxFileSize: 5 * 1024 * 1024 * 1024, // 5GB
+    maxFileSize: 100 * 1024 * 1024, // 100MB per chunk
   });
 
   form.parse(req, (err, fields, files) => {
@@ -149,28 +149,70 @@ app.post("/api/upload", async (req, res) => {
     }
 
     const file = files.file;
-    console.log("uploading: " + file.originalFilename);
+    const chunkIndex = parseInt(fields.chunkIndex[0]) || 0;
+    const totalChunks = parseInt(fields.totalChunks[0]) || 1;
+    const uploadId = fields.uploadId[0];
+    const filename = fields.filename[0];
 
-    let id = Math.floor(Math.random() * (999999 - 111111 + 1)) + 111111;
-    let token = makeToken();
-    // TODO: check if id is new
+    console.log(
+      `uploading chunk ${chunkIndex + 1}/${totalChunks} for upload ${uploadId}`,
+    );
 
-    fs.rename(file.filepath, "runtime/files/" + id, (err) => {
+    const uploadDir = `runtime/files/.uploads/${uploadId}`;
+
+    // Create upload directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const chunkPath = `${uploadDir}/${chunkIndex}`;
+
+    fs.rename(file.filepath, chunkPath, (err) => {
       if (err) {
         console.error(err);
         return res.status(500).send(err);
       }
-    });
 
-    db.serialize(() => {
-      db.run(
-        `INSERT INTO files (id, filename, token, ttl) VALUES (?, ?, ?, ?)`,
-        [id, file.originalFilename, token, 6],
-      );
-    });
+      // Check if all chunks are uploaded
+      if (chunkIndex === totalChunks - 1) {
+        // Assemble chunks
+        let id = Math.floor(Math.random() * (999999 - 111111 + 1)) + 111111;
+        let token = makeToken();
 
-    console.log("assigned id: " + id);
-    res.send({ id, token });
+        const finalPath = `runtime/files/${id}`;
+        const writeStream = fs.createWriteStream(finalPath);
+        let chunkCount = 0;
+
+        const assembleChunks = () => {
+          if (chunkCount < totalChunks) {
+            const chunk = fs.readFileSync(`${uploadDir}/${chunkCount}`);
+            writeStream.write(chunk);
+            chunkCount++;
+            assembleChunks();
+          } else {
+            writeStream.end();
+            writeStream.on("finish", () => {
+              // Clean up upload directory
+              fs.rm(uploadDir, { recursive: true }, () => {});
+
+              db.serialize(() => {
+                db.run(
+                  `INSERT INTO files (id, filename, token, ttl) VALUES (?, ?, ?, ?)`,
+                  [id, filename, token, 6],
+                );
+              });
+
+              console.log("assigned id: " + id);
+              res.send({ id, token, complete: true });
+            });
+          }
+        };
+
+        assembleChunks();
+      } else {
+        res.send({ uploadId, chunkIndex, complete: false });
+      }
+    });
   });
 });
 
