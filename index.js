@@ -165,21 +165,15 @@ app.post("/api/upload", async (req, res) => {
     const filePath = file?.filepath || file?.newFilePath || file?.path;
     const fileSize = file?.size || 0;
 
-    const getField = (field, defaultValue) => {
-      if (Array.isArray(field)) return field[0];
-      if (field != null) return field;
-      return defaultValue;
-    };
-
-    const chunkIndex = parseInt(getField(fields.chunkIndex, 0), 10) || 0;
-    const totalChunks = parseInt(getField(fields.totalChunks, 1), 10) || 1;
-    const uploadId = getField(fields.uploadId, "");
-    const filename = getField(fields.filename, "upload");
+    const chunkIndex = parseInt(req.query.chunkIndex || 0, 10) || 0;
+    const totalChunks = parseInt(req.query.totalChunks || 1, 10) || 1;
+    const uploadId = req.query.uploadId || "";
+    const filename = req.query.filename || "upload";
 
     if (!filePath || !uploadId) {
       return res.status(400).send({
         error: "Missing file or uploadId",
-        data: fields,
+        data: req.query,
         files: files,
       });
     }
