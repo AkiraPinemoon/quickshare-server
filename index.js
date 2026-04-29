@@ -171,13 +171,10 @@ app.post("/api/upload", async (req, res) => {
     const uploadId = getField(fields.uploadId, "");
     const filename = getField(fields.filename, "upload");
 
-    console.log("files:");
-    console.dir(files, { depth: null });
-    console.log("fields:");
-    console.dir(fields, { depth: null });
-
     if (!file || !uploadId) {
-      return res.status(400).send({ error: "Missing file or uploadId" });
+      return res
+        .status(400)
+        .send({ error: "Missing file or uploadId", data: fields });
     }
 
     console.log(
